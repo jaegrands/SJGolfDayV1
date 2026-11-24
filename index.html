@@ -76,23 +76,24 @@ const tot=g=>{const a=hs(g);return{n:a.length,s:a.reduce((t,x)=>t+x.s,0),p:a.red
 const dc=g=>g.players.map((n,i)=>({n,c:hs(g).filter(x=>x.d===i&&dv(x.n)).length})),sh=g=>dc(g).filter(x=>x.c<MIN);
 function load(){const g=cur(),x=g&&g['h'+hole],c=g&&g[ck()];if(g)lr[g.id]=g.rst||0;dr=x?{s:x.s,p:x.p,d:x.d==null?null:x.d}:{s:PAR[hole-1],p:2,d:null};cx=c?{p:c.p,d:String(c.d)}:{p:null,d:''}}
 const RL={1:'Best',2:'Good',3:'Average',4:'Beginner'},sum=a=>a.reduce((t,x)=>t+x,0),pby=id=>pool.find(p=>p.id===id),pg=id=>groups.find(g=>(g.pids||[]).includes(id)),
- chk=r=>{const c=k=>r.filter(x=>x===k).length;return c(1)&&!c(4)?'A group with a 1 must also have a 4.':c(2)>2?'A group can have at most two 2s.':c(1)&&c(2)>1?'A group with a 1 cannot have two 2s.':''},
+ mem=p=>!!p&&p.member===true,chk=(r,m)=>{const c=k=>r.filter(x=>x===k).length;return c(1)&&!c(4)?'A group with a 1 must also have a 4.':c(2)>2?'A group can have at most two 2s.':c(1)&&c(2)>1?'A group with a 1 cannot have two 2s.':m<2?'A group needs at least 2 members.':''},
  tr=g=>g.rk&&g.rk.length?sum(g.rk):null,hc=g=>{const t=tr(g);return t==null?0:t-Math.min(...groups.map(tr).filter(x=>x!=null))},
  pcs=r=>r.slice().sort((a,b)=>a-b).join('-')+' = '+sum(r),
  mg=(o,s)=>{const a=s.filter(i=>!o.includes(i));return o.map(i=>s.includes(i)?i:a.shift()).concat(a).filter(Boolean)};
-const pick=(sel,act,own)=>{const used=new Set(groups.filter(g=>g.id!==own).flatMap(g=>g.pids||[])),av=pool.filter(p=>!used.has(p.id)).sort((a,b)=>a.rank-b.rank||a.name.localeCompare(b.name)),r=sel.map(pby).filter(Boolean).map(p=>p.rank);
- return `<div class="lab">Players from the pool (${r.length}/4 picked)</div>`+(av.length?`<div class="drv">${av.map(p=>`<button class="chip${sel.includes(p.id)?' on':''}" data-a="${act}" data-id="${p.id}">${E(p.name)} · ${p.rank}</button>`).join('')}</div>`:'<p class="mu">No unassigned players. Add them in the Players tab.</p>')+(r.length?`<p class="mu">${pcs(r)}${r.length>2&&chk(r)?' · '+chk(r):''}</p>`:'')};
+const pick=(sel,act,own)=>{const used=new Set(groups.filter(g=>g.id!==own).flatMap(g=>g.pids||[])),av=pool.filter(p=>!used.has(p.id)).sort((a,b)=>a.rank-b.rank||a.name.localeCompare(b.name)),q=sel.map(pby).filter(Boolean),r=q.map(p=>p.rank),m=q.filter(mem).length;
+ return `<div class="lab">Players from the pool (${r.length}/4 picked)</div>`+(av.length?`<div class="drv">${av.map(p=>`<button class="chip${sel.includes(p.id)?' on':''}" data-a="${act}" data-id="${p.id}">${E(p.name)} · ${p.rank}${mem(p)?'':' · Guest'}</button>`).join('')}</div>`:'<p class="mu">No unassigned players. Add them in the Players tab.</p>')+(r.length?`<p class="mu">${pcs(r)} · ${m} member${m===1?'':'s'}${r.length>2&&chk(r,m)?' · '+chk(r,m):''}</p>`:'')};
 const rk4=(r,w)=>`<div class="drv">${[1,2,3,4].map(k=>`<button class="chip${r===k?' on':''}" data-a="pr" data-w="${w}" data-r="${k}">${k} ${RL[k]}</button>`).join('')}</div>`;
-const playersUI=()=>{const pl=p=>{const g=pg(p.id);return p.id===pe?`<div class="cd"><h3>Edit player</h3><input id="pen" placeholder="Player name" value="${E(pef.n)}">${rk4(pef.r,'e')}<button class="go" data-a="ps">Save changes</button><button class="sm" data-a="pc" style="margin-top:10px">Cancel</button><p class="err">${E(msg)}</p></div>`:`<div class="cd row"><div><b>${E(p.name)}</b><div class="mu">${p.rank} · ${RL[p.rank]} · ${g?'In '+E(g.name):'Unassigned'}</div></div>${g?'':`<div class="drv"><button class="sm" data-a="pe" data-id="${p.id}">Edit</button><button class="sm" data-a="px" data-id="${p.id}">${del===p.id?'Confirm?':'Delete'}</button></div>`}</div>`};
- return `<div class="cd"><h3>Add a player</h3><input id="pn" placeholder="Player name" value="${E(pf.n)}"><div class="lab">Ranking</div>${rk4(pf.r,'a')}<p class="mu">1 Best: regularly plays golf or has a GA handicap. 2 Good: plays infrequently but knows the game. 3 Average: plays annually. 4 Beginner: new to golf or to a comp.</p><button class="go" data-a="pa">Add player</button><p class="err">${E(msg)}</p></div><h2>Players (${pool.length})</h2><p class="mu">By ranking: ${[1,2,3,4].map(k=>k+' = '+pool.filter(p=>p.rank===k).length).join(' · ')}. Players in a group are locked: remove them from the group to edit or delete.</p>`+(pool.length?pool.map(pl).join(''):'<p class="mu">No players yet.</p>')};
+const mb2=(m,w)=>`<div class="drv">${[[1,'Member'],[0,'Guest']].map(([k,l])=>`<button class="chip${m===k?' on':''}" data-a="pm" data-w="${w}" data-m="${k}">${l}</button>`).join('')}</div>`;
+const playersUI=()=>{const pl=p=>{const g=pg(p.id);return p.id===pe?`<div class="cd"><h3>Edit player</h3><input id="pen" placeholder="Player name" value="${E(pef.n)}">${rk4(pef.r,'e')}<div class="lab">Membership</div>${mb2(pef.m,'e')}<button class="go" data-a="ps">Save changes</button><button class="sm" data-a="pc" style="margin-top:10px">Cancel</button><p class="err">${E(msg)}</p></div>`:`<div class="cd row"><div><b>${E(p.name)}</b><div class="mu">${p.rank} · ${RL[p.rank]} · ${mem(p)?'Member':'Guest'} · ${g?'In '+E(g.name):'Unassigned'}</div></div>${g?'':`<div class="drv"><button class="sm" data-a="pe" data-id="${p.id}">Edit</button><button class="sm" data-a="px" data-id="${p.id}">${del===p.id?'Confirm?':'Delete'}</button></div>`}</div>`};
+ return `<div class="cd"><h3>Add a player</h3><input id="pn" placeholder="Player name" value="${E(pf.n)}"><div class="lab">Ranking</div>${rk4(pf.r,'a')}<div class="lab">Membership</div>${mb2(pf.m,'a')}<p class="mu">1 Best: regularly plays golf or has a GA handicap. 2 Good: plays infrequently but knows the game. 3 Average: plays annually. 4 Beginner: new to golf or to a comp. Each group needs at least 2 members. Guests (non-members) are not eligible to have their name on the trophy.</p><button class="go" data-a="pa">Add player</button><p class="err">${E(msg)}</p></div><h2>Players (${pool.length})</h2><p class="mu">By ranking: ${[1,2,3,4].map(k=>k+' = '+pool.filter(p=>p.rank===k).length).join(' · ')} · Members ${pool.filter(mem).length} · Guests ${pool.filter(p=>!mem(p)).length}. Players in a group are locked: remove them from the group to edit or delete.</p>`+(pool.length?pool.map(pl).join(''):'<p class="mu">No players yet.</p>')};
 function rows(){
  const a=groups.map(g=>{const t=tot(g),h=hc(g);return{g,m:sh(g),n:t.n,p:t.p,gs:t.s,h,s:t.s-h}}),f=a.filter(x=>x.n>=H).sort((x,y)=>x.s-y.s||x.p-y.p);
  f.forEach((x,i)=>{x.r=i&&x.s===f[i-1].s&&x.p===f[i-1].p?f[i-1].r:i+1;x.t=f.some(y=>y!==x&&y.s===x.s&&y.p===x.p);x.b=f.some(y=>y!==x&&y.s===x.s&&y.p!==x.p)});
  return{f,ip:a.filter(x=>x.n<H).sort((x,y)=>y.n-x.n||x.gs-y.gs)}}
-const card=(x,fin)=>`<div class="cd lb">${fin?`<b class="rk">${x.t?'T':''}${x.r}</b>`:''}<div class="gn"><b>${E(x.g.name)}</b><small>${fin?x.g.players.map(E).join(', '):'Thru '+x.n+' of '+H}</small>${fin&&x.g.rk?`<small>${x.h?'Gross '+x.gs+' − '+x.h+' handicap':'Par-Group · no handicap'}</small>`:''}${fin&&x.m.length?`<small class="hl">Min drives: ${x.m.map(y=>E(y.n)+' '+y.c+'/'+MIN).join(', ')}</small>`:''}</div>${fin||adm()?`<div class="sc"><b>${fin?x.s:x.gs}</b><small${x.b?' class="hl"':''}>${x.p} putts</small></div>`:''}</div>`;
+const card=(x,fin)=>`<div class="cd lb">${fin?`<b class="rk">${x.t?'T':''}${x.r}</b>`:''}<div class="gn"><b>${E(x.g.name)}</b><small>${fin?x.g.players.map(E).join(', '):'Thru '+x.n+' of '+H}</small>${fin&&x.g.rk?`<small>${x.h?'Gross '+x.gs+' − '+x.h+' handicap':'Par-Group · no handicap'}</small>`:''}${fin&&x.r===1&&x.g.mb?`<small>Trophy names: ${x.g.players.filter((n,i)=>x.g.mb[i]).map(E).join(', ')}</small>`:''}${fin&&x.m.length?`<small class="hl">Min drives: ${x.m.map(y=>E(y.n)+' '+y.c+'/'+MIN).join(', ')}</small>`:''}</div>${fin||adm()?`<div class="sc"><b>${fin?x.s:x.gs}</b><small${x.b?' class="hl"':''}>${x.p} putts</small></div>`:''}</div>`;
 const best=(k,d)=>groups.filter(g=>g[k]&&typeof g[k].d==='number').map(g=>({g,...g[k]})).sort((a,b)=>d*(a.d-b.d))[0];
 const ct=(l,k,d)=>{const b=best(k,d);return `<div class="cd row"><div><b>${l}</b><div class="mu">${b?E(b.g.players[b.p]||'?')+' · '+E(b.g.name):'No entries yet'}</div></div><b>${b?(b.d<1?Math.round(b.d*100)+' cm':b.d+' m'):''}</b></div>`};
-const gr=g=>g.id===ed?`<div class="cd"><h3>Edit group</h3><input id="en" placeholder="Group name" value="${E(ef.n)}">${pick(ef.s,'pk2',g.id)}<input id="ec" inputmode="numeric" maxlength="4" placeholder="4-digit passcode" value="${E(ef.c)}"><button class="go" data-a="es">Save changes</button><button class="sm" data-a="ec" style="margin-top:10px">Cancel</button><p class="err">${E(msg)}</p></div>`:`<div class="cd row"><div><b>${E(g.name)}</b><div class="mu">${g.players.map(E).join(', ')}</div>${g.rk?`<div class="mu">Ranks ${pcs(g.rk)} · ${hc(g)?'Handicap '+hc(g)+(hc(g)>1?' strokes':' stroke'):'Par-Group'}</div>`:''}<div class="mu">Passcode: ${E(g.pin||'not set')}</div></div><div class="drv"><button class="sm" data-a="iv" data-id="${g.id}">Invite</button><button class="sm" data-a="e" data-id="${g.id}">Edit</button><button class="sm" data-a="x" data-id="${g.id}">${del===g.id?'Confirm?':'Delete'}</button></div></div>`;
+const gr=g=>g.id===ed?`<div class="cd"><h3>Edit group</h3><input id="en" placeholder="Group name" value="${E(ef.n)}">${pick(ef.s,'pk2',g.id)}<input id="ec" inputmode="numeric" maxlength="4" placeholder="4-digit passcode" value="${E(ef.c)}"><button class="go" data-a="es">Save changes</button><button class="sm" data-a="ec" style="margin-top:10px">Cancel</button><p class="err">${E(msg)}</p></div>`:`<div class="cd row"><div><b>${E(g.name)}</b><div class="mu">${g.players.map((n,i)=>E(n)+(g.mb&&!g.mb[i]?' (Guest)':'')).join(', ')}</div>${g.rk?`<div class="mu">Ranks ${pcs(g.rk)} · ${hc(g)?'Handicap '+hc(g)+(hc(g)>1?' strokes':' stroke'):'Par-Group'}</div>`:''}<div class="mu">Passcode: ${E(g.pin||'not set')}</div></div><div class="drv"><button class="sm" data-a="iv" data-id="${g.id}">Invite</button><button class="sm" data-a="e" data-id="${g.id}">Edit</button><button class="sm" data-a="x" data-id="${g.id}">${del===g.id?'Confirm?':'Delete'}</button></div></div>`;
 const loginView=()=>`<div class="cd"><h3>Log in</h3><div class="lab">Username</div><select id="lu"><option value="">Choose your group…</option><option value="admin"${lf.u==='admin'?' selected':''}>Admin</option>${groups.map(g=>`<option value="${g.id}"${lf.u===g.id?' selected':''}>${E(g.name)}</option>`).join('')}</select><div class="lab">Passcode</div><input id="lp" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4-digit passcode" value="${E(lf.p)}"><button class="go" data-a="login">Log in</button><p class="err">${E(msg)}</p></div>`;
 const resetUI=()=>{
  const sc=groups.reduce((n,g)=>n+hs(g).length,0),ce=groups.reduce((n,g)=>n+(g.np?1:0)+(g.ld?1:0),0),lt=Math.max(0,...groups.map(g=>g.rst||0));
@@ -174,37 +175,38 @@ document.addEventListener('click',async e=>{
   if(cx.p==null||!isFinite(v)||v<0)msg='Select a player and enter the distance in metres.';
   else{busy=true;render();try{await S.upd(g.id,{[k]:{p:cx.p,d:v}});msg=''}catch(er){msg='Could not save: '+M(er)}busy=false}}
  else if(a==='cc'){const g=cur(),k=ck();if(g&&k)try{await S.upd(g.id,{[k]:null});cx={p:null,d:''}}catch(er){msg='Could not clear: '+M(er)}}
-  else if(a==='add'){const n=form.n.trim(),r=form.s.map(pby).filter(Boolean),k=r.map(p=>p.rank),c=form.c.trim();
+  else if(a==='add'){const n=form.n.trim(),r=form.s.map(pby).filter(Boolean),k=r.map(p=>p.rank),mc=r.filter(mem).length,c=form.c.trim();
    if(!n)msg='Enter a group name.';
    else if(r.length<3||r.length>4)msg='Pick 3 or 4 players from the pool.';
-   else if(chk(k))msg=chk(k);
+   else if(chk(k,mc))msg=chk(k,mc);
    else if(!/^\d{4}$/.test(c))msg='The passcode must be 4 digits.';
    else if(n.toLowerCase()==='admin'||groups.some(g=>g.name.toLowerCase()===n.toLowerCase()))msg='That group name is already taken.';
-   else try{await S.add({name:n,players:r.map(p=>p.name),pids:r.map(p=>p.id),rk:k,pin:c,created:Date.now()});form={n:'',s:[],c:''};msg=''}catch(er){msg='Could not add: '+M(er)}}
+   else try{await S.add({name:n,players:r.map(p=>p.name),pids:r.map(p=>p.id),rk:k,mb:r.map(mem),pin:c,created:Date.now()});form={n:'',s:[],c:''};msg=''}catch(er){msg='Could not add: '+M(er)}}
   else if(a==='pk'||a==='pk2'){const s=a==='pk'?form.s:ef.s,i=s.indexOf(D.id);i<0?s.length<4&&s.push(D.id):s.splice(i,1)}
  else if(a==='iv'){const g=groups.find(x=>x.id===D.id);if(g)return invite(g)}
  else if(a==='e'){const g=groups.find(x=>x.id===D.id);if(g){ed=g.id;ef={n:g.name,s:[...(g.pids||[])],c:g.pin||''};msg='';del=null}}
  else if(a==='ec'){ed=null;msg=''}
-  else if(a==='es'){const g0=groups.find(x=>x.id===ed),n=ef.n.trim(),c=ef.c.trim(),sel=ef.s.filter(pby),k=sel.map(i=>pby(i).rank);
+  else if(a==='es'){const g0=groups.find(x=>x.id===ed),n=ef.n.trim(),c=ef.c.trim(),sel=ef.s.filter(pby),k=sel.map(i=>pby(i).rank),mc=sel.filter(i=>mem(pby(i))).length;
    if(!n)msg='Enter a group name.';
    else if(sel.length<3||sel.length>4)msg='Pick 3 or 4 players from the pool.';
-   else if(chk(k))msg=chk(k);
+   else if(chk(k,mc))msg=chk(k,mc);
    else if(!/^\d{4}$/.test(c))msg='The passcode must be 4 digits.';
    else if(n.toLowerCase()==='admin'||groups.some(g=>g.id!==ed&&g.name.toLowerCase()===n.toLowerCase()))msg='That group name is already taken.';
    else if(g0&&(hs(g0).length||g0.np||g0.ld)&&sel.length!==g0.players.length)msg='Scores are already entered, so you can swap players but not change the group size.';
-   else try{const o=g0&&g0.pids?mg(g0.pids,sel):sel,ps=o.map(pby);await S.upd(ed,{name:n,players:ps.map(p=>p.name),pids:o,rk:ps.map(p=>p.rank),pin:c});ed=null;msg=''}catch(er){msg='Could not save: '+M(er)}}
+   else try{const o=g0&&g0.pids?mg(g0.pids,sel):sel,ps=o.map(pby);await S.upd(ed,{name:n,players:ps.map(p=>p.name),pids:o,rk:ps.map(p=>p.rank),mb:ps.map(mem),pin:c});ed=null;msg=''}catch(er){msg='Could not save: '+M(er)}}
  else if(a==='x'){if(del===D.id){del=null;try{await S.rm(D.id);if(ed===D.id)ed=null}catch(er){msg='Could not delete: '+M(er)}}else del=D.id}
   else if(a==='pr'){(D.w==='e'?pef:pf).r=+D.r}
+  else if(a==='pm'){(D.w==='e'?pef:pf).m=+D.m}
   else if(a==='pa'){const n=pf.n.trim();
-   if(!n||!pf.r)msg='Enter a name and choose a ranking.';
+   if(!n||!pf.r||pf.m==null)msg='Enter a name, choose a ranking and choose Member or Guest.';
    else if(pool.some(p=>p.name.toLowerCase()===n.toLowerCase()))msg='That player is already in the pool.';
-   else try{await S.padd({name:n,rank:pf.r,created:Date.now()});pf={n:'',r:0};msg=''}catch(er){msg='Could not add: '+M(er)}}
-  else if(a==='pe'){const p=pby(D.id);if(p&&!pg(p.id)){pe=p.id;pef={n:p.name,r:p.rank};msg='';del=null}}
+   else try{await S.padd({name:n,rank:pf.r,member:pf.m===1,created:Date.now()});pf={n:'',r:0,m:pf.m};msg=''}catch(er){msg='Could not add: '+M(er)}}
+  else if(a==='pe'){const p=pby(D.id);if(p&&!pg(p.id)){pe=p.id;pef={n:p.name,r:p.rank,m:mem(p)?1:0};msg='';del=null}}
   else if(a==='pc'){pe=null;msg=''}
   else if(a==='ps'){const n=pef.n.trim();
-   if(!n||!pef.r)msg='Enter a name and choose a ranking.';
+   if(!n||!pef.r||pef.m==null)msg='Enter a name, choose a ranking and choose Member or Guest.';
    else if(pool.some(p=>p.id!==pe&&p.name.toLowerCase()===n.toLowerCase()))msg='That player is already in the pool.';
-   else try{await S.pupd(pe,{name:n,rank:pef.r});pe=null;msg=''}catch(er){msg='Could not save: '+M(er)}}
+   else try{await S.pupd(pe,{name:n,rank:pef.r,member:pef.m===1});pe=null;msg=''}catch(er){msg='Could not save: '+M(er)}}
   else if(a==='px'){const p=pby(D.id);if(p&&!pg(p.id)){if(del===D.id){del=null;try{await S.prm(D.id)}catch(er){msg='Could not delete: '+M(er)}}else del=D.id}}
   render()});
 document.addEventListener('change',e=>{const i=e.target.id;
