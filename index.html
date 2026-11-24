@@ -64,10 +64,10 @@ const H=18,MIN=2,AH='b3b1sk',PAR=[4,4,5,4,4,3,4,3,4,3,4,4,3,4,4,4,4,4];
 const hh=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(36)};
 const $=s=>document.querySelector(s),E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),M=er=>er.message||'try again';
 let groups=[],me=null,tab='score',gid=null,hole=1,dr={s:4,p:2,d:null},cx={p:null,d:''},form={n:'',p:'',c:''},ef={n:'',p:[],c:''},ed=null,lf={u:'',p:''},msg='',del=null,busy=false,ready=false,slow=false,first=true,last,note='',jn=null,gp={tee:null,msg:'',busy:false},rsc=false,rmsg='',lr={};
-try{me=JSON.parse(localStorage.getItem('sj'))}catch(_){}
-try{gid=localStorage.getItem('gid')||null}catch(_){}
-try{gp.tee=JSON.parse(localStorage.getItem('gtee'))}catch(_){}
-const sv=()=>{try{localStorage.setItem('sj',JSON.stringify(me))}catch(_){}},adm=()=>!!me&&me.r==='a';
+try{me=JSON.parse(localStorage.getItem('sj2_sj'))}catch(_){}
+try{gid=localStorage.getItem('sj2_gid')||null}catch(_){}
+try{gp.tee=JSON.parse(localStorage.getItem('sj2_gtee'))}catch(_){}
+const sv=()=>{try{localStorage.setItem('sj2_sj',JSON.stringify(me))}catch(_){}},adm=()=>!!me&&me.r==='a';
 if(me)tab=adm()?'setup':'score';
 const cur=()=>groups.find(g=>g.id===(adm()?gid:me&&me.id)),ck=()=>hole===10?'np':hole===18?'ld':'',dv=n=>PAR[n-1]>3;
 const hs=g=>{const a=[];for(let i=1;i<=H;i++)if(g['h'+i])a.push({n:i,...g['h'+i]});return a};
@@ -144,7 +144,7 @@ document.addEventListener('click',async e=>{
  else if(a==='d'||a==='u'){const k=D.k,m=k==='s'?1:0,X=k==='s'?15:dr.s;dr[k]=Math.max(m,Math.min(X,dr[k]+(a==='u'?1:-1)));if(dr.p>dr.s)dr.p=dr.s}
  else if(a==='v')dr.d=+D.i;
  else if(a==='gt'){if(gp.busy)return;gp.busy=true;gp.msg='';render();
-  try{const f=await fix();f.t=Date.now();gp.tee=f;try{localStorage.setItem('gtee',JSON.stringify(f))}catch(_){}gp.msg='Tee box marked (±'+Math.round(f.acc)+' m). Now walk to the ball and tap Mark ball.'}catch(er){gp.msg=er.message}gp.busy=false}
+  try{const f=await fix();f.t=Date.now();gp.tee=f;try{localStorage.setItem('sj2_gtee',JSON.stringify(f))}catch(_){}gp.msg='Tee box marked (±'+Math.round(f.acc)+' m). Now walk to the ball and tap Mark ball.'}catch(er){gp.msg=er.message}gp.busy=false}
  else if(a==='gb'){if(gp.busy)return;
   if(!gp.tee)gp.msg='Mark the tee box first.';
   else if(Date.now()-gp.tee.t>18e5)gp.msg='The tee mark is more than 30 minutes old. Mark the tee box again.';
@@ -179,7 +179,7 @@ document.addEventListener('click',async e=>{
  render()});
 document.addEventListener('change',e=>{const i=e.target.id;
  if(i==='lu')lf.u=e.target.value;
- if(i==='gs'){gid=e.target.value||null;try{localStorage.setItem('gid',gid||'')}catch(_){}hole=1;load();msg='';render()}});
+ if(i==='gs'){gid=e.target.value||null;try{localStorage.setItem('sj2_gid',gid||'')}catch(_){}hole=1;load();msg='';render()}});
 document.addEventListener('input',e=>{const i=e.target.id;let v=e.target.value;
  if(/^(lp|gc|ec)$/.test(i)){v=v.replace(/\D/g,'');e.target.value=v}
  if(i==='lp')lf.p=v;if(i==='gn')form.n=v;if(i==='gp')form.p=v;if(i==='gc')form.c=v;if(i==='cd')cx.d=v;if(i==='en')ef.n=v;if(i==='ec')ef.c=v;if(/^ep\d$/.test(i))ef.p[+i[2]]=v});
