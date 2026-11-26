@@ -65,7 +65,7 @@ const FB='https://sjgolfday-default-rtdb.asia-southeast1.firebasedatabase.app/';
 const H=18,MIN=2,AH='b3b1sk',PAR=[4,4,5,4,4,3,4,3,4,3,4,4,3,4,4,4,4,4];
 const hh=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(36)};
 const $=s=>document.querySelector(s),E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),M=er=>er.message||'try again';
-let groups=[],me=null,tab='score',gid=null,hole=1,dr={s:4,p:2,d:null},cx={p:null,d:''},form={n:'',s:['','','',''],c:''},ef={n:'',s:['','','',''],c:''},ed=null,pool=[],pf={n:'',r:0},pe=null,pef={n:'',r:0},im='',we=null,wv='',upl=null,upm='',lf={u:'',p:''},msg='',del=null,busy=false,ready=false,slow=false,first=true,last,note='',jn=null,gp={tee:null,msg:'',busy:false},rsc=false,rmsg='',lr={};
+let groups=[],me=null,tab='score',gid=null,hole=1,dr={s:4,p:2,d:null},cx={p:null,d:''},form={n:'',s:['','','',''],c:''},ef={n:'',s:['','','',''],c:''},ed=null,pool=[],pf={n:'',r:0},pe=null,pef={n:'',r:0},im='',we=null,wv='',upl=null,upm='',hv=0,lf={u:'',p:''},msg='',del=null,busy=false,ready=false,slow=false,first=true,last,note='',jn=null,gp={tee:null,msg:'',busy:false},rsc=false,rmsg='',lr={};
 try{me=JSON.parse(localStorage.getItem('sj2_sj'))}catch(_){}
 try{gid=localStorage.getItem('sj2_gid')||null}catch(_){}
 try{gp.tee=JSON.parse(localStorage.getItem('sj2_gtee'))}catch(_){}
@@ -126,6 +126,11 @@ const lx=()=>window.XLSX?Promise.resolve():xp||(xp=new Promise((ok,no)=>{const s
 const upf=document.createElement('input');upf.type='file';upf.id='upf';upf.accept='.xlsx,.xls,.csv,.txt,text/csv';upf.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';document.body.appendChild(upf);
 upf.addEventListener('change',async()=>{const f=upf.files[0];upf.value='';if(!f)return;upm='Reading '+f.name+'…';render();
  try{let R;if(/\.(csv|txt)$/i.test(f.name))R=csv(await f.text());else{await lx();const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});R=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''})}upl=prep(R,f.name);upm=''}catch(er){upl=null;upm='Could not read that file: '+M(er)}render()});
+const HD=[305,404,497,265,324,156,441,181,334,156,465,371,148,381,446,368,348,369],
+ HT={13:'Water runs down the whole left side and wraps around the green, with a bunker just right of it and trees down the right. Aim for the centre of the green and keep the ball off the left.'},
+ himg=n=>'https://rowvillelakes.miclub.com.au/cms/wp-content/uploads/2025/01/Hole-'+n+'.jpg',
+ holesUI=()=>{const n=+(hv||hole);return `<div class="drv">${PAR.map((x,i)=>`<button class="chip${i+1===n?' on':''}" data-a="hh" data-n="${i+1}">${i+1}</button>`).join('')}</div><div class="cd"><h3>Hole ${n} · Par ${PAR[n-1]}</h3><p class="mu">${HD[n-1]} yd from the men’s tees${n===10?' · nearest the pin':''}${n===18?' · longest drive':''}</p>${HT[n]?`<div class="lab">Where to hit</div><p>${E(HT[n])}</p>`:''}<a href="${himg(n)}" target="_blank" rel="noopener"><img class="hg" src="${himg(n)}" alt="Hole ${n} overview" loading="lazy" style="width:100%;max-width:360px;display:block;margin:10px auto 0;border-radius:10px"></a><p class="mu">Tap the picture to enlarge. Course guide image: Rowville Lakes Golf Course.</p></div>`};
+document.addEventListener('error',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('hg'))t.outerHTML='<p class="mu">The hole picture could not load. See the official course guide at rowvillelakesgolf.com.au.</p>'},true);
 const mb2=(m,w)=>`<div class="drv">${[[1,'Member'],[0,'Guest']].map(([k,l])=>`<button class="chip${m===k?' on':''}" data-a="pm" data-w="${w}" data-m="${k}">${l}</button>`).join('')}</div>`;
 const playersUI=()=>{lx().catch(()=>{});const pl=p=>{const g=pg(p.id);return p.id===we?`<div class="cd"><h3>Previous wins: ${E(p.name)}</h3><input id="wv" inputmode="numeric" placeholder="Years won, e.g. 2019, 2022" value="${E(wv)}"><button class="go" data-a="ws">Save</button><button class="sm" data-a="wc" style="margin-top:10px">Cancel</button><p class="err">${E(msg)}</p></div>`:p.id===pe?`<div class="cd"><h3>Edit player</h3><input id="pen" placeholder="Player name" value="${E(pef.n)}">${rk4(pef.r,'e')}<div class="lab">Membership</div>${mb2(pef.m,'e')}<button class="go" data-a="ps">Save changes</button><button class="sm" data-a="pc" style="margin-top:10px">Cancel</button><p class="err">${E(msg)}</p></div>`:`<div class="cd row"><div><b>${E(p.name)}</b><div class="mu">${p.rank} · ${RL[p.rank]} · ${mem(p)?'Member':'Guest'} · ${g?'In '+E(g.name):'Unassigned'}</div>${(p.wins||[]).length?`<div style="margin-top:6px">${tro(p.wins)}</div>`:''}</div><div class="drv">${g?'':`<button class="sm" data-a="pe" data-id="${p.id}">Edit</button><button class="sm" data-a="px" data-id="${p.id}">${del===p.id?'Confirm?':'Delete'}</button>`}<button class="sm" data-a="wo" data-id="${p.id}">🏆</button></div></div>`};
  return `<div class="cd"><h3>Add a player</h3><input id="pn" placeholder="Player name" value="${E(pf.n)}"><div class="lab">Ranking</div>${rk4(pf.r,'a')}<div class="lab">Membership</div>${mb2(pf.m,'a')}<p class="mu">1 Best: regularly plays golf or has a GA handicap. 2 Good: plays infrequently but knows the game. 3 Average: plays annually. 4 Beginner: new to golf or to a comp. Each group needs at least 2 members. Guests (non-members) are not eligible to have their name on the trophy.</p><button class="go" data-a="pa">Add player</button><p class="err">${E(msg)}</p></div>${uploadCard()}<h2>Players (${pool.length})</h2><p class="mu">By ranking: ${[1,2,3,4].map(k=>k+' = '+pool.filter(p=>p.rank===k).length).join(' · ')} · Members ${pool.filter(mem).length} · Guests ${pool.filter(p=>!mem(p)).length}. Players in a group are locked: remove them from the group to edit or delete.</p>`+(pool.length?pool.map(pl).join(''):'<p class="mu">No players yet.</p>')+impCard()};
@@ -165,13 +170,14 @@ function view(){
   if(k)h+=`<div class="cd"><h3>${k==='np'?'Nearest the pin':'Longest drive'} · hole ${hole}</h3><div class="lab">Best in your group</div><div class="drv">${g.players.map((p,i)=>`<button class="chip${cx.p===i?' on':''}" data-a="cp" data-i="${i}">${E(p)}</button>`).join('')}</div><div class="lab">Distance (m)</div><input id="cd" type="number" inputmode="decimal" step="any" min="0" value="${E(cx.d)}">${k==='np'?'<button class="sm" data-a="cam">Measure with camera</button>':gpsUI()}<button class="go" data-a="cs"${busy?' disabled':''}>Save entry</button>${g[k]?'<button class="sm" data-a="cc" style="margin-top:10px">Clear entry</button>':''}</div>`;
   h+=`<p class="mu">${t.n}/${H} holes · ${t.s} strokes · ${t.p} putts${g.rk?' · Handicap '+hc(g):''}</p><div class="lab">Drives on par 4s and 5s (minimum ${MIN} each)</div><div class="drv">${d.map(x=>`<span class="chip${x.c<MIN?' hl':''}">${E(x.n)} ${x.c}/${MIN}</span>`).join('')}</div>`;
   if(need&&need>=left)h+=`<p class="err">${need>left?'Minimum drives can no longer be met.':'No spare holes: each remaining drive must come from a player still short.'}</p>`}
+  else if(tab==='holes')h+=holesUI();
   else if(tab==='players'&&adm())h+=playersUI();
   else if(adm()){
    h+=`<div class="cd"><h3>Add a group</h3><input id="gn" placeholder="Group name" value="${E(form.n)}">${pick(form.s,'sa','')}<input id="gc" inputmode="numeric" maxlength="4" placeholder="4-digit passcode" value="${E(form.c)}"><button class="go" data-a="add">Add group</button><p class="err">${E(msg)}</p></div>`;
   h+='<h2>Groups</h2>'+(note?'<p class="mu">'+E(note)+'</p>':'')+(groups.length?groups.map(gr).join(''):'<p class="mu">No groups yet.</p>')+resetUI()}
  return h}
 function render(){document.body.classList.toggle('lg',!me);
- const t=me?(adm()?[['board','Leaderboard'],['score','Score'],['players','Players'],['setup','Groups']]:[['score','Score'],['board','Leaderboard']]):[];
+ const t=me?(adm()?[['board','Board'],['score','Score'],['holes','Holes'],['players','Players'],['setup','Groups']]:[['score','Score'],['board','Leaderboard'],['holes','Holes']]):[];
  $('#app').innerHTML=(me?`<div class="row" style="margin:0 0 10px"><span class="mu">Signed in as <b>${adm()?'Admin':E((cur()||{}).name||'')}</b></span><button class="sm" data-a="lo">Log out</button></div>`:'')+(t.length?'<div class="tabs'+(t.length>3?' t4':'')+'">'+t.map(([k,l])=>`<button class="${tab===k?'on':''}" data-a="t" data-k="${k}">${l}</button>`).join('')+'</div>':'')+view()}
 function login(){
  const p=lf.p.trim();lf.p='';
@@ -192,7 +198,7 @@ function tryJoin(){if(!jn)return;const g=groups.find(x=>x.id===jn.id);
  else{msg='That invitation is no longer valid. Log in with your passcode.';if(g)lf.u=g.id}
  jn=null}
 document.addEventListener('click',async e=>{
- const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,D=b.dataset;if(a!=='iv')note='';if(!/^rs/.test(a))rsc=false;if(a==='t')rmsg='';
+ const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,D=b.dataset;if(a!=='iv')note='';if(!/^rs/.test(a))rsc=false;if(a==='t')rmsg='';if(a==='t'&&D.k==='holes')hv=0;
  if(a==='t'){tab=D.k;msg='';del=null}
  else if(a==='lo'){me=null;sv();msg='';tab='score'}
  else if(a==='login')return login();
@@ -255,6 +261,7 @@ document.addEventListener('click',async e=>{
   else if(a==='wc'){we=null;msg=''}
   else if(a==='ws'){const ys=[...new Set((wv.match(/\d{4}/g)||[]).map(Number).filter(y=>y>=1900&&y<=2100))].sort((a,b)=>a-b),g=pg(we);
    try{await S.pupd(we,{wins:ys.length?ys:null});if(g&&g.pids)await S.upd(g.id,{wn:g.pids.map(i=>i===we?ys.join(','):wy(pby(i)||{}))});we=null;msg=''}catch(er){msg='Could not save: '+M(er)}}
+  else if(a==='hh'){hv=+D.n}
   else if(a==='tpl'){upm='';tpl()}
   else if(a==='upc'){upm='';upf.click();return}
   else if(a==='upx'){upl=null;upm=''}
